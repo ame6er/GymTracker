@@ -5,7 +5,7 @@ A free gym workout tracker that anyone can use on their phone. The owner is a st
 ## Files
 - `index.html`: the entire app (HTML + CSS + JavaScript in one file, no frameworks, no build step)
 - `manifest.json`: makes the app installable ("Add to Home Screen")
-- `sw.js`: service worker so the app works offline
+- `sw.js`: service worker so the app works offline. The page is loaded network-first (newest version when online, saved copy offline); other files are cache-first. Install uses `cache: 'reload'` so a new cache never stores stale files. The page reloads itself when a new version takes over (asks first during a workout).
 - `icon-180.png`, `icon-192.png`, `icon-512.png`: app icons
 
 ## Hosting and storage

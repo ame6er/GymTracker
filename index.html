@@ -1698,15 +1698,18 @@ applyTheme();
 go('workout');
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  // When a new version takes over, load it. During a workout, ask first so nothing feels jumpy.
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return;
+    if (S.active) { toast('LiftLog was updated.', () => { save(); location.reload(); }, 'Reload', 20000); return; }
+    reloading = true; save(); location.reload();
+  });
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
-      reg.addEventListener('updatefound', () => {
-        const nw = reg.installing;
-        if (nw) nw.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller)
-            toast('A new version of LiftLog is ready.', () => { save(); location.reload(); }, 'Reload', 20000);
-        });
-      });
+      // Check for a new version each time the app comes back to the screen.
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => { }); });
     }).catch(() => { });
   });
 }
