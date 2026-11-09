@@ -21,10 +21,11 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
 ```
 - Exercise history is linked across days by exercise name (lowercased), not by id.
 - Optional fields added in the first release (still v:1, `normalize()` in index.html fills defaults, so data without them still works):
-  - top level: `alert` (bool, sound/vibration when rest ends), `lastBackup` (ms timestamp), `backupSnooze` (ms timestamp), `accent` (app color key: purple, blue, green, orange, pink, teal)
+  - top level: `alert` (bool, sound/vibration when rest ends), `lastBackup` (ms timestamp), `backupSnooze` (ms timestamp), `accent` (app color key: purple, blue, green, orange, pink, teal), `name` (optional first name for the greeting and profile)
   - `days[].exercises[].sets`: number of sets to start with (1 to 10, default 3 when missing)
   - `days[].exercises[].reps` and `active.items[].reps`: rep target text like "8-12" or "5"
   - `days[].exercises[].rest` and `active.items[].rest`: rest seconds for that exercise (missing = use top-level `rest`)
+  - `days[].exercises[].ss` and `active.items[].ss`: superset group id. Exercises with the same id are done back to back; rest only starts after the last one in the group. Groups with fewer than 2 members are cleaned up by `cleanGroups()`.
   - `active.dayId` is null for an empty workout (not started from a split day)
   - `days[].exercises[].bw`, `logs[].entries[].bw`, `active.items[].bw`: true for bodyweight exercises (w = extra weight)
   - `logs[].note`, `active.note`: workout notes
@@ -37,7 +38,7 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
 - Test locally with `python3 -m http.server 8000`, at 390px wide.
 
 ## Current features
-Build-your-own split (no ready-made splits), split days shown as cards on home with a preview sheet, start an empty workout, searchable exercise list with body part filters and custom exercises, per-exercise options (sets, rep target, own rest time, bodyweight, order), "add weight" tip when the rep target was hit on every set, app color choice, workout table with a Previous column and rest times between sets, Finish button in the header, set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
+Build-your-own split (no ready-made splits), split days shown as cards on home with a preview sheet, start an empty workout, searchable exercise list with body part filters and custom exercises, per-exercise options (sets, rep target, own rest time, bodyweight, order), "add weight" tip when the rep target was hit on every set, app color choice, supersets (in the split and during a workout), profile page (name, week streak, totals, workouts per week chart, best lifts), workout table with a Previous column and rest times between sets, Finish button in the header, set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
 
 ## Design
 Simple and clean, with some life: gradient hero card on home, week dots, colored day badges, small animations (respecting reduced motion), confetti on new records. Keep it simple; the owner prefers simplicity.

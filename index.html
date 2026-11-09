@@ -133,6 +133,26 @@ textarea{min-height:80px;resize:vertical}
 .lrow.sel .lsel{background:var(--accent);border-color:var(--accent)}
 .libfoot{padding-top:12px;border-top:1px solid var(--line);margin-top:4px}
 
+/* Supersets */
+.card.ss{border-left:5px solid var(--accent)}
+.sslabel{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:999px;padding:2px 8px;vertical-align:middle;letter-spacing:.02em}
+.pex.ss{box-shadow:inset 4px 0 0 var(--accent);padding-left:10px;border-radius:4px}
+
+/* Profile */
+.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stats2 .stat{text-align:left;padding:14px}
+.stats2 .stat b{font-size:24px}
+.streak{display:flex;align-items:center;gap:14px}
+.streak .fire{font-size:42px;line-height:1}
+.bars{display:flex;align-items:flex-end;gap:6px;height:130px;margin-top:12px}
+.bars>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-size:11px;color:var(--muted);min-width:0}
+.bars i{display:block;width:100%;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,var(--accent),var(--accent2));min-height:4px;transition:height .5s}
+.bars i.zero{background:var(--line)}
+.bars b{color:var(--text);font-size:12px}
+.pb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 0;border-top:1px solid var(--line)}
+.pb:first-child{border-top:0}
+
 /* Plan editor */
 .cdot{width:30px;height:30px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 25%,transparent)}
 .dname{font-weight:750;font-size:18px;background:transparent;padding:8px 6px}
@@ -190,7 +210,7 @@ canvas#chart{display:block;width:100%;height:220px}
 .tabs{position:fixed;bottom:0;left:0;right:0;z-index:10;background:color-mix(in srgb,var(--card) 92%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabs>div{display:flex;max-width:640px;margin:0 auto}
 .tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 0 7px;font-size:11px;font-weight:600;color:var(--muted);position:relative}
-.tabs .ic{display:flex;padding:4px 18px;border-radius:999px;transition:background .25s}
+.tabs .ic{display:flex;padding:4px 14px;border-radius:999px;transition:background .25s}
 .tabs button.on{color:var(--accent-text)}
 .tabs button.on .ic{background:var(--accent-soft)}
 .tabs svg{width:22px;height:22px}
@@ -242,6 +262,7 @@ canvas#chart{display:block;width:100%;height:220px}
   <button data-act="tab" data-tab="workout"><span id="liveDot" class="live hidden"></span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg></span>Workout</button>
   <button data-act="tab" data-tab="history"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span>History</button>
   <button data-act="tab" data-tab="progress"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M5 15l4-5 4 3 6-7"/></svg></span>Progress</button>
+  <button data-act="tab" data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Profile</button>
   <button data-act="tab" data-tab="settings"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>Settings</button>
 </div></nav>
 
@@ -356,12 +377,13 @@ const PART_COLORS = { Chest: '#ef4444', Back: '#0ea5e9', Shoulders: '#f59e0b', A
 
 /* ---------- Data ---------- */
 function defaults() {
-  return { v: 1, unit: 'kg', theme: 'auto', accent: 'purple', rest: 90, bar: 20, days: [], logs: [], active: null, alert: true, lastBackup: 0, backupSnooze: 0 };
+  return { v: 1, name: '', unit: 'kg', theme: 'auto', accent: 'purple', rest: 90, bar: 20, days: [], logs: [], active: null, alert: true, lastBackup: 0, backupSnooze: 0 };
 }
 function cleanTarget(x) {
   if (x.sets != null) { const n = Math.round(num(x.sets)); if (n >= 1 && n <= 20) x.sets = n; else delete x.sets; }
   if (x.reps != null) { const r = String(x.reps).trim().slice(0, 12); if (r) x.reps = r; else delete x.reps; }
   if (x.rest != null) { const r = Math.round(num(x.rest)); if (r >= 0 && r <= 900) x.rest = r; else delete x.rest; }
+  if (x.ss != null) { const g = String(x.ss).slice(0, 24); if (g) x.ss = g; else delete x.ss; }
   return x;
 }
 
@@ -373,6 +395,7 @@ function normalize(raw) {
   if (s.unit !== 'lb') s.unit = 'kg';
   if (!['auto', 'light', 'dark'].includes(s.theme)) s.theme = 'auto';
   if (!ACCENTS[s.accent]) s.accent = 'purple';
+  s.name = String(s.name == null ? '' : s.name).slice(0, 30);
   s.rest = Math.max(0, Math.round(num(s.rest)));
   if (!(typeof s.bar === 'number' && s.bar >= 0)) s.bar = s.unit === 'lb' ? 45 : 20;
   s.alert = s.alert !== false;
@@ -431,6 +454,8 @@ let chartPts = [];
 let openEx = null;   // exercise whose options are open in the split editor
 let popKey = '';     // set button that just got ticked, for the little pop animation
 let lib = null;      // state of the "Add exercises" list while it is open
+let ssLetters = {};  // superset group letters (A, B...) for the current workout
+let ssSel = null;    // exercises picked while creating a superset
 
 /* ---------- Helpers ---------- */
 const fmt = n => String(Math.round(num(n) * 100) / 100);
@@ -509,7 +534,38 @@ function parseReps(s) {
   return null;
 }
 const itemRest = it => it.rest != null ? it.rest : S.rest;
+const ICON_USER = '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
 const accentHex = () => ACCENTS[S.accent][1];
+// Supersets: exercises that share the same "ss" group id are done back to back.
+function cleanGroups(list) {
+  const c = {};
+  for (const x of list) if (x.ss) c[x.ss] = (c[x.ss] || 0) + 1;
+  for (const x of list) if (x.ss && c[x.ss] < 2) delete x.ss;
+}
+function groupInList(list, ids) {
+  const chosen = list.filter(x => ids.has(x.id));
+  if (chosen.length < 2) return list;
+  const g = 'g' + uid(), first = list.findIndex(x => ids.has(x.id));
+  const others = list.filter(x => !ids.has(x.id));
+  const before = list.slice(0, first).filter(x => !ids.has(x.id)).length;
+  chosen.forEach(x => { x.ss = g; });
+  others.splice(before, 0, ...chosen);
+  cleanGroups(others);
+  return others;
+}
+function nextInGroup(list, i) {
+  const g = list[i] && list[i].ss;
+  if (!g) return null;
+  for (let k = i + 1; k < list.length; k++) if (list[k].ss === g) return k;
+  return null;
+}
+function groupLetters(list) {
+  const m = {}; let n = 0;
+  for (const x of list) if (x.ss && !m[x.ss]) m[x.ss] = String.fromCharCode(65 + n++ % 26);
+  return m;
+}
+function weekStartOf(t) { const d = new Date(t); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getTime(); }
+function addWeeks(t, n) { const d = new Date(t); d.setDate(d.getDate() + 7 * n); return d.getTime(); }
 function workoutName() {
   const h = new Date().getHours();
   return h < 12 ? 'Morning workout' : h < 17 ? 'Afternoon workout' : 'Evening workout';
@@ -585,7 +641,8 @@ function heroCard() {
     dots += `<div><span>${letters[i]}</span><div class="wdot${on ? ' on' : ''}${i === todayIdx ? ' today' : ''}">${on ? ICON.checkSm : ''}</div></div>`;
   }
   const big = n ? `${n} workout${n === 1 ? '' : 's'} this week` : (ln ? 'Time to beat last week' : 'Let\'s get moving');
-  return `<div class="hero"><div class="hi">${greeting()} · ${dateStr(Date.now(), { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+  const hi = S.name ? greeting().replace('?', '') + ', ' + esc(S.name) + (greeting().endsWith('?') ? '?' : '') : greeting();
+  return `<div class="hero"><div class="hi">${hi} · ${dateStr(Date.now(), { weekday: 'long', day: 'numeric', month: 'long' })}</div>
     <div class="big">${big}</div>
     <div class="week">${dots}</div>
     <div class="mini"><div><b>${sets}</b>sets</div><div><b>${fmtInt(vol)}</b>${S.unit} lifted</div><div><b>${ln}</b>last week</div></div></div>`;
@@ -638,7 +695,7 @@ function previewDay(id) {
     <h3 style="margin:0">${esc(d.name || 'Untitled day')}</h3><div class="small muted">${last ? 'Last done ' + ago(last) : 'Not done yet'}</div></div>
     <button class="icon-btn" data-act="close" aria-label="Close">${ICON.x}</button></div><div class="mt">`;
   for (const e of d.exercises.filter(e => e.name.trim()))
-    h += `<div class="list-row"><span><b>${esc(e.name)}</b></span><span class="muted">${esc(targetTxt(e))}</span></div>`;
+    h += `<div class="list-row"><span><b>${esc(e.name)}</b>${e.ss ? ` <span class="sslabel">Superset ${groupLetters(d.exercises)[e.ss]}</span>` : ''}</span><span class="muted">${esc(targetTxt(e))}</span></div>`;
   if (!d.exercises.some(e => e.name.trim())) h += `<p class="muted">No exercises yet. You can add them during the workout or in your split.</p>`;
   h += `</div><button class="btn primary block mt" data-act="start" data-id="${d.id}">Start workout</button>
     <button class="btn block mt" data-act="plan">Edit split</button></div>`;
@@ -656,6 +713,7 @@ function vActive() {
     <div class="prog"><div style="width:${total ? Math.round(100 * done / total) : 0}%"></div></div>
     <div class="small" style="margin-top:8px;opacity:.9">${done} of ${total} sets done${total && done === total ? '. Great work! 🎉' : ''}</div></div>`;
   if (a.items.length) h += `<p class="small muted" style="margin:0 4px 12px">Tap ✓ when you finish a set. Empty boxes use your previous numbers.</p>`;
+  ssLetters = groupLetters(a.items);
   a.items.forEach((it, i) => { h += itemCard(it, i); });
   if (!a.items.length) h += `<p class="muted center">No exercises yet. Add some below.</p>`;
   h += `<button class="btn soft block" data-act="addEx">+ Add exercises</button>
@@ -675,11 +733,14 @@ function progressHint(it, last) {
 
 function itemCard(it, i) {
   const last = lastFor(it.name), bw = !!it.bw, doneN = it.sets.filter(s => s.done).length, all = doneN === it.sets.length && doneN > 0;
-  const rest = itemRest(it), t = parseReps(it.reps), hint = progressHint(it, last);
+  const items = S.active.items, nx = nextInGroup(items, i);
+  const rest = nx == null ? itemRest(it) : 0, t = parseReps(it.reps), hint = progressHint(it, last);
   const info = [];
   if (it.reps) info.push(`Target ${esc(it.reps)} reps`);
-  info.push(rest ? 'Rest ' + restTxt(rest) : 'No rest timer');
-  let h = `<div class="card"><div class="row"><div class="num${all ? ' ok' : ''}">${all ? ICON.checkSm : i + 1}</div><div class="grow">
+  if (nx != null) info.push('Then go to ' + esc(items[nx].name));
+  else info.push(rest ? 'Rest ' + restTxt(rest) : 'No rest timer');
+  let h = `<div class="card${it.ss ? ' ss' : ''}" id="ex-${i}"><div class="row"><div class="num${all ? ' ok' : ''}">${all ? ICON.checkSm : i + 1}</div><div class="grow">
+    ${it.ss ? `<span class="sslabel">Superset ${ssLetters[it.ss] || ''}</span>` : ''}
     <div class="exname">${esc(it.name)} ${bw ? '<span class="tag">Bodyweight</span>' : ''}</div>
     <div class="small muted">${info.join(' · ')}</div></div>
     <button class="icon-btn" data-act="exMenu" data-i="${i}" aria-label="Exercise options" title="Options">${ICON.dots}</button></div>
@@ -712,6 +773,8 @@ function exMenu(i) {
     <div class="setting"><span>Rep target</span><input data-f="itReps" data-i="${i}" value="${esc(it.reps || '')}" placeholder="e.g. 8-12" style="width:120px;text-align:center"></div>
     <div class="setting"><span>Bodyweight</span><button class="tgl${it.bw ? ' on' : ''}" data-act="itBw" data-i="${i}" aria-pressed="${!!it.bw}" aria-label="Bodyweight"></button></div>
     ${it.bw ? '' : `<button class="mrow" data-act="plates" data-i="${i}">Plate calculator <span class="muted">›</span></button>`}
+    ${it.ss ? `<button class="mrow" data-act="ssRemove" data-i="${i}">Remove from superset</button>`
+      : (S.active.items.length > 1 ? `<button class="mrow" data-act="ssOpen" data-i="${i}">Create superset <span class="muted">›</span></button>` : '')}
     <button class="mrow danger" data-act="rmItem" data-i="${i}">Remove exercise</button>
     <p class="small muted">${dayById(S.active.dayId) ? 'Changes are also saved to your split.' : 'Changes apply to this workout.'}</p>
     <button class="btn primary block mt" data-act="closeMenu">Done</button>`);
@@ -722,6 +785,80 @@ function syncToPlan(it) {
   const e = d && d.exercises.find(x => keyOf(x.name) === keyOf(it.name));
   if (!e) return;
   for (const k of ['rest', 'reps', 'bw']) { if (it[k] != null && it[k] !== false) e[k] = it[k]; else delete e[k]; }
+}
+
+function ssModal(i) {
+  const it = S.active.items[i]; if (!it) return;
+  ssSel = new Set([it.id]);
+  openModal(`<h3>Create superset</h3><p class="small muted">Pick two or more exercises to do back to back. The rest timer starts after the last one.</p>
+    <div id="ssList" class="mt"></div>
+    <div class="row mt"><button class="btn grow" data-act="close">Cancel</button><button class="btn primary grow" id="ssSave" data-act="ssSave">Save</button></div>`);
+  renderSs();
+}
+function renderSs() {
+  const box = $('#ssList'); if (!box || !ssSel) return;
+  box.innerHTML = S.active.items.map(x => {
+    const sel = ssSel.has(x.id);
+    return `<button class="lrow${sel ? ' sel' : ''}" data-act="ssPick" data-id="${x.id}"><span class="grow"><b>${esc(x.name)}</b>
+      <span class="small muted">${x.ss ? 'In superset ' + (ssLetters[x.ss] || '') : x.sets.length + (x.sets.length === 1 ? ' set' : ' sets')}</span></span><span class="lsel">${sel ? ICON.checkSm : ''}</span></button>`;
+  }).join('');
+  $('#ssSave').disabled = ssSel.size < 2;
+  $('#ssSave').textContent = ssSel.size < 2 ? 'Pick at least 2' : `Save superset (${ssSel.size})`;
+}
+// Apply a superset made during a workout to the split day too, matched by exercise name.
+function ssToPlan(names, remove) {
+  const d = S.active && dayById(S.active.dayId); if (!d) return;
+  const keys = new Set(names.map(keyOf));
+  if (remove) { for (const e of d.exercises) if (keys.has(keyOf(e.name))) delete e.ss; cleanGroups(d.exercises); return; }
+  const ids = new Set(d.exercises.filter(e => keys.has(keyOf(e.name))).map(e => e.id));
+  if (ids.size >= 2) { for (const e of d.exercises) if (ids.has(e.id)) delete e.ss; cleanGroups(d.exercises); d.exercises = groupInList(d.exercises, ids); }
+}
+
+function vProfile() {
+  const logs = S.logs;
+  let ms = 0, vol = 0, sets = 0;
+  for (const l of logs) { ms += Math.max(0, l.date - (l.started || l.date)); vol += logVolume(l); sets += logSets(l); }
+  const first = logs.reduce((m, l) => Math.min(m, l.date), Infinity);
+  // Week streak: weeks in a row with at least one workout (this week counts once you train).
+  const weeks = new Set(logs.map(l => weekStartOf(l.date)));
+  let cur = 0, w = weekStart();
+  if (!weeks.has(w)) w = addWeeks(w, -1);
+  while (weeks.has(w)) { cur++; w = addWeeks(w, -1); }
+  let best = 0, run = 0, prev = null;
+  for (const x of [...weeks].sort((a, b) => a - b)) { run = prev != null && addWeeks(prev, 1) === x ? run + 1 : 1; best = Math.max(best, run); prev = x; }
+  const hours = Math.round(ms / 360000) / 10;
+  let h = `<div class="card"><div class="row"><div class="avatar">${S.name ? esc(initial(S.name)) : ICON_USER}</div><div class="grow">
+    <div class="dayname" style="font-size:22px">${S.name ? esc(S.name) : 'Your profile'}</div>
+    <div class="small muted">${logs.length ? 'Training since ' + dateStr(first, { month: 'long', year: 'numeric' }) : 'No workouts yet'}</div></div>
+    <button class="icon-btn" data-act="editName" aria-label="Edit name">${ICON.pencil}</button></div>
+    ${S.name ? '' : '<button class="tag lg mt" data-act="editName">Add your name</button>'}</div>
+    <div class="card streak"><div class="fire">${cur ? '🔥' : '💤'}</div><div class="grow">
+    <div class="dayname">${cur} week streak</div>
+    <div class="small muted">${cur ? 'You trained every week for ' + cur + ' week' + (cur === 1 ? '' : 's') + '. Keep it going!' : 'Do a workout this week to start a streak.'} Best: ${best} week${best === 1 ? '' : 's'}.</div></div></div>
+    <div class="stats2"><div class="stat"><b>${logs.length}</b><span>workouts</span></div><div class="stat"><b>${hours}</b><span>hours trained</span></div>
+    <div class="stat"><b>${fmtInt(sets)}</b><span>sets done</span></div><div class="stat"><b>${fmtInt(vol)}</b><span>${S.unit} lifted</span></div></div>`;
+  const ws = weekStart(), counts = [];
+  for (let k = 7; k >= 0; k--) { const a = addWeeks(ws, -k), b = addWeeks(ws, -k + 1); counts.push({ a, n: logs.filter(l => l.date >= a && l.date < b).length }); }
+  const max = Math.max(1, ...counts.map(c => c.n));
+  h += `<h2>Workouts per week</h2><div class="card"><div class="bars">${counts.map(c => `<div><b>${c.n || ''}</b><i class="${c.n ? '' : 'zero'}" style="height:${c.n ? Math.round(85 * c.n / max) : 3}%"></i><span>${dateStr(c.a, { day: 'numeric', month: 'short' })}</span></div>`).join('')}</div></div>`;
+  const names = progressNames();
+  if (names.length) {
+    h += `<h2>Your best lifts</h2><div class="card">`;
+    for (const n of names.slice(0, 12)) {
+      const data = entriesFor(n), bw = data.length && data[data.length - 1].bw;
+      let top = null, orm = 0, when = 0;
+      for (const d of data) for (const s of d.sets) {
+        if (!top || s.w > top.w || (s.w === top.w && s.r > top.r)) { top = s; when = d.date; }
+        orm = Math.max(orm, e1rm(s.w, s.r));
+      }
+      if (!top) continue;
+      const main = bw && !top.w ? `${top.r} reps` : `${fmt(top.w)} ${S.unit} × ${top.r}`;
+      h += `<button class="pb" data-act="pbOpen" data-n="${esc(n)}"><span class="grow"><b>${esc(n)}</b><span class="small muted" style="display:block">${dateStr(when, { day: 'numeric', month: 'short', year: 'numeric' })}</span></span>
+        <span style="text-align:right"><b>${esc(main)}</b>${orm && !(bw && !top.w) ? `<span class="small muted" style="display:block">Est. 1RM ${fmt(Math.round(orm * 10) / 10)}</span>` : ''}</span></button>`;
+    }
+    h += `</div>`;
+  } else h += `<p class="muted center mt">Finish a workout to see your best lifts here.</p>`;
+  return h;
 }
 
 function vHistory() {
@@ -871,7 +1008,7 @@ function vSettings() {
 
 function vPlan() {
   let h = S.days.length
-    ? `<p class="small muted">Tap any name to change it. Tap the button on the right of an exercise to set sets, reps and rest.</p>`
+    ? `<p class="small muted">Tap any name to change it. Tap the button on the right of an exercise to set sets, reps, rest and supersets.</p>`
     : `<p class="muted">Start by adding the days in your split. Tap an idea or type your own, like "Chest and back" or "Monday".</p>`;
   S.days.forEach((d, di) => {
     h += `<div class="card" style="--c:${esc(d.color)}"><div class="row" style="gap:6px">
@@ -882,7 +1019,7 @@ function vPlan() {
       <button class="icon-btn" data-act="delDay" data-id="${d.id}" aria-label="Delete day">${ICON.x}</button></div>`;
     d.exercises.forEach((e, ei) => {
       const isOpen = openEx === e.id;
-      h += `<div class="pex"><span class="num">${ei + 1}</span>
+      h += `<div class="pex${e.ss ? ' ss' : ''}"><span class="num">${ei + 1}</span>
         <input class="grow" data-f="exName" data-d="${d.id}" data-e="${e.id}" value="${esc(e.name)}" placeholder="Exercise name" list="names" aria-label="Exercise name">
         <button class="pill${isOpen ? ' on' : ''}" data-act="exOpts" data-e="${e.id}" aria-expanded="${isOpen}">${esc(targetTxt(e))}</button></div>`;
       if (isOpen) h += `<div class="opts">
@@ -891,6 +1028,7 @@ function vPlan() {
         <div class="setting"><span>Rest timer<br><span class="small muted">${e.rest != null ? `<button class="tag" data-act="exRestReset" data-id="${d.id}" data-e="${e.id}">Use default</button>` : 'Default'}</span></span>
           <div class="stepper"><button data-act="exRest" data-id="${d.id}" data-e="${e.id}" data-v="-15" aria-label="Less rest">−</button><b>${restTxt(e.rest != null ? e.rest : S.rest)}</b><button data-act="exRest" data-id="${d.id}" data-e="${e.id}" data-v="15" aria-label="More rest">+</button></div></div>
         <div class="setting"><span>Bodyweight<br><span class="small muted">Like pull-ups. Extra weight is optional.</span></span><button class="tgl${e.bw ? ' on' : ''}" data-act="bwEx" data-id="${d.id}" data-e="${e.id}" aria-pressed="${!!e.bw}" aria-label="Bodyweight"></button></div>
+        ${d.exercises[ei + 1] ? `<div class="setting"><span>Superset with next<br><span class="small muted">Do it back to back with ${esc(d.exercises[ei + 1].name || 'the next one')}</span></span><button class="tgl${e.ss && d.exercises[ei + 1].ss === e.ss ? ' on' : ''}" data-act="exSs" data-id="${d.id}" data-e="${e.id}" aria-label="Superset with next"></button></div>` : ''}
         <div class="row mt" style="gap:6px"><button class="btn sm grow" data-act="moveEx" data-id="${d.id}" data-e="${e.id}" data-v="-1"${ei === 0 ? ' disabled' : ''}>↑ Up</button>
         <button class="btn sm grow" data-act="moveEx" data-id="${d.id}" data-e="${e.id}" data-v="1"${ei === d.exercises.length - 1 ? ' disabled' : ''}>↓ Down</button>
         <button class="btn sm danger grow" data-act="delEx" data-id="${d.id}" data-e="${e.id}">Remove</button></div></div>`;
@@ -979,9 +1117,9 @@ function libAdd() {
   }
 }
 
-const TITLES = { workout: 'LiftLog', history: 'History', progress: 'Progress', settings: 'Settings', plan: 'Your split' };
+const TITLES = { workout: 'LiftLog', history: 'History', progress: 'Progress', profile: 'Profile', settings: 'Settings', plan: 'Your split' };
 function render() {
-  const fns = { workout: vWorkout, history: vHistory, progress: vProgress, settings: vSettings, plan: vPlan };
+  const fns = { workout: vWorkout, history: vHistory, progress: vProgress, profile: vProfile, settings: vSettings, plan: vPlan };
   $('#view').innerHTML = (fns[view] || vWorkout)();
   $('#title').textContent = view === 'workout' && S.active ? 'Workout' : TITLES[view];
   $('#topFinish').classList.toggle('hidden', !(S.active && view === 'workout'));
@@ -1006,7 +1144,7 @@ function openModal(html, tall) {
   sh.innerHTML = html; sh.classList.toggle('tall', !!tall);
   $('#modal').classList.remove('hidden');
 }
-function closeModal() { $('#modal').classList.add('hidden'); $('#sheet').innerHTML = ''; modalOk = null; lib = null; }
+function closeModal() { $('#modal').classList.add('hidden'); $('#sheet').innerHTML = ''; modalOk = null; lib = null; ssSel = null; }
 $('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 function confirmBox(title, text, okLabel, fn, danger, backLabel) {
   openModal(`<h3>${esc(title)}</h3>${text ? `<p class="muted">${esc(text)}</p>` : ''}
@@ -1063,6 +1201,7 @@ function makeItem(name, bw, plan) {
   if (bw) it.bw = true;
   if (plan.reps) it.reps = plan.reps;
   if (plan.rest != null) it.rest = plan.rest;
+  if (plan.ss) it.ss = plan.ss;
   return it;
 }
 function startDay(id) {
@@ -1091,6 +1230,15 @@ function toggleDone(i, j) {
     return;
   }
   s.done = true; popKey = i + '-' + j;
+  const nx = nextInGroup(S.active.items, i);
+  if (nx != null) {
+    // Superset: no rest yet, go straight to the next exercise in the group.
+    save(); render();
+    toast('Superset: now do ' + S.active.items[nx].name);
+    const c = document.getElementById('ex-' + nx);
+    if (c) c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   startRest(itemRest(it), i + '-' + j);
   save(); render();
 }
@@ -1313,7 +1461,7 @@ const A = {
   rmItem: d => {
     const it = S.active.items[+d.i]; if (!it) return;
     closeModal();
-    const u = undoSnap(); S.active.items.splice(+d.i, 1); stopRest(); save(); render();
+    const u = undoSnap(); S.active.items.splice(+d.i, 1); cleanGroups(S.active.items); stopRest(); save(); render();
     toast(`Removed ${it.name}`, u);
   },
   addEx: () => openLib('workout'),
@@ -1331,6 +1479,45 @@ const A = {
   },
   libAdd: () => libAdd(),
   exMenu: d => exMenu(+d.i),
+  ssOpen: d => ssModal(+d.i),
+  ssPick: d => { if (!ssSel) return; ssSel.has(d.id) ? ssSel.delete(d.id) : ssSel.add(d.id); renderSs(); },
+  ssSave: () => {
+    if (!ssSel || ssSel.size < 2) return;
+    const items = S.active.items, names = items.filter(x => ssSel.has(x.id)).map(x => x.name);
+    for (const x of items) if (ssSel.has(x.id)) delete x.ss;
+    cleanGroups(items);
+    S.active.items = groupInList(items, ssSel);
+    ssToPlan(names);
+    stopRest(); save(); closeModal(); render();
+    toast('Superset created');
+  },
+  ssRemove: d => {
+    const it = S.active.items[+d.i]; if (!it) return;
+    delete it.ss; cleanGroups(S.active.items); ssToPlan([it.name], true);
+    stopRest(); save(); closeModal(); render();
+  },
+  exSs: d => {
+    const day = dayById(d.id); if (!day) return;
+    const list = day.exercises, idx = list.findIndex(x => x.id === d.e), e = list[idx], nx = list[idx + 1];
+    if (!e || !nx) return;
+    if (e.ss && nx.ss === e.ss) {
+      // Unlink: everything after this point in the group becomes its own group.
+      const g = e.ss, ng = 'g' + uid();
+      for (let k = idx + 1; k < list.length; k++) if (list[k].ss === g) list[k].ss = ng;
+    } else {
+      const g = e.ss || nx.ss || 'g' + uid();
+      for (const old of [e.ss, nx.ss]) if (old && old !== g) list.forEach(x => { if (x.ss === old) x.ss = g; });
+      e.ss = g; nx.ss = g;
+    }
+    cleanGroups(list); save(); render();
+  },
+  editName: () => {
+    openModal(`<h3>Your name</h3><p class="small muted">Only used to greet you. It stays on this phone.</p><input id="pName" value="${esc(S.name)}" placeholder="Your name" maxlength="30" aria-label="Your name">
+      <div class="row mt"><button class="btn grow" data-act="close">Cancel</button><button class="btn primary grow" data-act="nameOk">Save</button></div>`);
+    setTimeout(() => { const el = $('#pName'); if (el) el.focus(); }, 50);
+  },
+  nameOk: () => { S.name = ($('#pName').value || '').trim().slice(0, 30); save(); closeModal(); render(); },
+  pbOpen: d => { prog.name = d.n; prog.metric = ''; go('progress'); },
   closeMenu: () => { closeModal(); render(); },
   itRest: d => {
     const it = S.active.items[+d.i]; if (!it) return;
@@ -1396,7 +1583,7 @@ const A = {
   delEx: d => {
     const day = dayById(d.id); if (!day) return;
     const e = day.exercises.find(x => x.id === d.e); if (!e) return;
-    const u = undoSnap(); day.exercises = day.exercises.filter(x => x.id !== d.e); openEx = null; save(); render();
+    const u = undoSnap(); day.exercises = day.exercises.filter(x => x.id !== d.e); cleanGroups(day.exercises); openEx = null; save(); render();
     if (e.name.trim()) toast(`Removed ${e.name}`, u);
   },
   moveEx: d => { const day = dayById(d.id); if (!day) return; moveIn(day.exercises, day.exercises.findIndex(x => x.id === d.e), +d.v); save(); render(); },
@@ -1449,6 +1636,7 @@ document.addEventListener('keydown', e => {
   } else if (['r', 'exName', 'dayName', 'exReps', 'itReps'].includes(ds.f)) { e.preventDefault(); t.blur(); }
   else if (t.id === 'newDay') { e.preventDefault(); A.addDay(); }
   else if (t.id === 'wName') { e.preventDefault(); A.renameOk(); }
+  else if (t.id === 'pName') { e.preventDefault(); A.nameOk(); }
   else if (t.id === 'libSearch') { e.preventDefault(); if (lib && lib.q.trim() && document.querySelector('[data-act=libCreate]')) A.libCreate(); else t.blur(); }
 });
 
