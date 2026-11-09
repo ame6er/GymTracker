@@ -22,6 +22,7 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
 - Exercise history is linked across days by exercise name (lowercased), not by id.
 - Optional fields added in the first release (still v:1, `normalize()` in index.html fills defaults, so data without them still works):
   - top level: `alert` (bool, sound/vibration when rest ends), `lastBackup` (ms timestamp), `backupSnooze` (ms timestamp)
+  - `days[].exercises[].sets`: number of sets to start with (1 to 10, default 3 when missing)
   - `days[].exercises[].bw`, `logs[].entries[].bw`, `active.items[].bw`: true for bodyweight exercises (w = extra weight)
   - `logs[].note`, `active.note`: workout notes
   - `logs[].date` and `logs[].started` are ms timestamps. `active.items[].sets` w/r are strings while typing, numbers once saved in logs.
@@ -33,7 +34,10 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
 - Test locally with `python3 -m http.server 8000`, at 390px wide.
 
 ## Current features
-Starter plans (Push/Pull/Legs, Upper/Lower, Full body, blank), editable days and exercises, set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
+Build-your-own split (no ready-made splits: new users add their own days and exercises, helped by tap-to-add idea chips), per-exercise options (number of sets, bodyweight, order), set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
+
+## Design
+Simple and clean, with some life: gradient hero card on home, week dots, colored day badges, small animations (respecting reduced motion), confetti on new records. Keep it simple; the owner prefers simplicity.
 
 ## Rules for every change
 - Keep the app plain HTML/CSS/JS with no build step, so GitHub Pages can serve the files as they are.
