@@ -20,6 +20,17 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
   active: null | {dayId, dayName, color, started, items:[{id, name, sets:[{w, r, pw, pr, done}]}]} }
 ```
 - Exercise history is linked across days by exercise name (lowercased), not by id.
+- Optional fields added in the first release (still v:1, `normalize()` in index.html fills defaults, so data without them still works):
+  - top level: `alert` (bool, sound/vibration when rest ends), `lastBackup` (ms timestamp), `backupSnooze` (ms timestamp)
+  - `days[].exercises[].bw`, `logs[].entries[].bw`, `active.items[].bw`: true for bodyweight exercises (w = extra weight)
+  - `logs[].note`, `active.note`: workout notes
+  - `logs[].date` and `logs[].started` are ms timestamps. `active.items[].sets` w/r are strings while typing, numbers once saved in logs.
+- Migrations live in `normalize()` (called by `load()` and by backup import).
+
+## Hosting details
+- Repo: github.com/ame6er/GymTracker. Live: https://ame6er.github.io/GymTracker/
+- GitHub Pages serves the `main` branch, root folder. All paths in the app are relative so it works under /GymTracker/.
+- Test locally with `python3 -m http.server 8000`, at 390px wide.
 
 ## Current features
 Starter plans (Push/Pull/Legs, Upper/Lower, Full body, blank), editable days and exercises, set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
