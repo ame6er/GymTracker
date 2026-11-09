@@ -112,8 +112,12 @@ textarea{min-height:80px;resize:vertical}
 @keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 .rline{grid-column:1/-1;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent-text);margin:-2px 0}
 .rline::before,.rline::after{content:"";flex:1;height:2px;border-radius:1px;background:color-mix(in srgb,var(--accent) 22%,transparent)}
-.rline span{font-variant-numeric:tabular-nums;padding:1px 8px;border-radius:999px}
-.rline.live span{background:var(--accent);color:#fff}
+.rline button{font-size:12px;font-weight:700;color:inherit;font-variant-numeric:tabular-nums;padding:3px 10px;border-radius:999px}
+.restbtn{font-size:14px;color:var(--accent-text);font-weight:600;padding:2px 0}
+.optgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.optb{min-height:44px;border-radius:12px;background:var(--input);font-weight:600;font-variant-numeric:tabular-nums}
+.optb.on{background:var(--accent);color:#fff}
+.rline.live button{background:var(--accent);color:#fff}
 .rline.live::before,.rline.live::after{background:var(--accent)}
 
 /* Menus and exercise list */
@@ -783,7 +787,7 @@ function itemCard(it, i) {
   const info = [];
   if (it.reps) info.push(`Target ${esc(it.reps)} reps`);
   if (nx != null) info.push('Then go to ' + esc(items[nx].name));
-  else info.push(rest ? 'Rest ' + restTxt(rest) : 'No rest timer');
+  else info.push(`<button class="restbtn" data-act="restPick" data-i="${i}">${rest ? 'Rest ' + restTxt(rest) : 'No rest timer'}</button>`);
   let h = `<div class="card${it.ss ? ' ss' : ''}" id="ex-${i}"><div class="row" style="gap:12px">${pic(it.name, all ? 'ok' : '')}<div class="grow">
     ${it.ss ? `<span class="sslabel">Superset ${ssLetters[it.ss] || ''}</span>` : ''}
     <div class="exname">${esc(it.name)} ${bw ? '<span class="tag">Bodyweight</span>' : ''}</div>
@@ -801,7 +805,7 @@ function itemCard(it, i) {
       <button class="check${s.done ? ' on' : ''}${popKey === i + '-' + j ? ' pop' : ''}" data-act="done" data-i="${i}" data-s="${j}" aria-label="Set ${j + 1} done" aria-pressed="${!!s.done}">${ICON.check}</button>`;
     if (rest) {
       const live = restEnd && restKey === i + '-' + j;
-      h += `<div class="rline${live ? ' live' : ''}"${live ? ' id="restLine"' : ''}><span>${live ? clock(restEnd - Date.now() + 999) : restTxt(rest)}</span></div>`;
+      h += `<div class="rline${live ? ' live' : ''}"${live ? ' id="restLine"' : ''}><button data-act="restPick" data-i="${i}" aria-label="Change rest time">${live ? clock(restEnd - Date.now() + 999) : restTxt(rest)}</button></div>`;
     }
   });
   h += `</div><div class="row mt" style="gap:20px"><button class="link" data-act="addSet" data-i="${i}">+ Add set</button>
@@ -824,6 +828,17 @@ function exMenu(i) {
     <p class="small muted">${dayById(S.active.dayId) ? 'Changes are also saved to your split.' : 'Changes apply to this workout.'}</p>
     <div class="row mt"><span class="grow"></span><button class="btn primary" data-act="closeMenu">Done</button></div>`);
 }
+const REST_CHOICES = [0, 30, 45, 60, 75, 90, 105, 120, 150, 180, 240, 300];
+function restPicker(i) {
+  const it = S.active && S.active.items[i]; if (!it) return;
+  const cur = itemRest(it);
+  openModal(`<div class="row between"><h3 style="margin:0">Rest time</h3><button class="icon-btn" data-act="close" aria-label="Close">${ICON.x}</button></div>
+    <p class="small muted">For ${esc(it.name)}. ${dayById(S.active.dayId) ? 'Saved to your split too.' : ''}</p>
+    <div class="optgrid">${REST_CHOICES.map(v => `<button class="optb${v === cur ? ' on' : ''}" data-act="restSet" data-i="${i}" data-v="${v}">${restTxt(v)}</button>`).join('')}</div>
+    <div class="row between mt"><button class="link muted" data-act="restSet" data-i="${i}" data-v="default">Use my default (${restTxt(S.rest)})</button>
+    <div class="stepper"><button data-act="restSet" data-i="${i}" data-v="-15" aria-label="15 seconds less">−</button><b>${restTxt(cur)}</b><button data-act="restSet" data-i="${i}" data-v="+15" aria-label="15 seconds more">+</button></div></div>`);
+}
+
 // Copy an exercise's settings from the workout back to the split day it came from.
 function syncToPlan(it) {
   const d = S.active && dayById(S.active.dayId);
@@ -1628,6 +1643,24 @@ const A = {
     const u = undoSnap(); S.logs = S.logs.filter(l => l.id !== d.id); save(); render(); toast('Workout deleted', u);
   }, true),
   metric: d => { prog.metric = d.m; render(); },
+  restPick: d => restPicker(+d.i),
+  restSet: d => {
+    const it = S.active && S.active.items[+d.i]; if (!it) return;
+    const old = itemRest(it);
+    if (d.v === 'default') delete it.rest;
+    else if (d.v[0] === '+' || d.v[0] === '-') it.rest = clamp(old + +d.v, 0, 900);
+    else it.rest = +d.v;
+    syncToPlan(it);
+    // If this exercise's rest is counting down right now, move it by the same amount.
+    if (restEnd && restKey.split('-')[0] === String(+d.i)) {
+      const diff = (itemRest(it) - old) * 1000;
+      restEnd += diff; restTotal = Math.max(1000, restTotal + diff); restLen = itemRest(it);
+      if (restEnd <= Date.now()) stopRest();
+    }
+    save(); render();
+    if (d.v[0] === '+' || d.v[0] === '-') restPicker(+d.i);
+    else { closeModal(); toast(`Rest for ${it.name}: ${restTxt(itemRest(it))}`); }
+  },
   tglFinishSplit: (d, b) => { finishToSplit = !finishToSplit; b.classList.toggle('on', finishToSplit); },
   logToSplit: d => {
     const l = S.logs.find(x => x.id === d.id); if (!l) return;
