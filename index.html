@@ -927,7 +927,7 @@ function vHistory() {
       h += '<div class="logbody">';
       for (const e of l.entries) h += `<div class="logex"><b>${esc(e.name)}</b><div class="small muted">${esc(e.sets.map(s => fmtSet(s, e.bw)).join(', '))}</div></div>`;
       if (l.note) h += `<div class="note">${esc(l.note)}</div>`;
-      h += `<div class="row mt"><button class="link danger" data-act="delLog" data-id="${esc(l.id)}">Delete workout</button></div></div>`;
+      h += `<div class="row between mt">${dayById(l.dayId) ? '<span></span>' : `<button class="link" data-act="logToSplit" data-id="${esc(l.id)}">Save to my split</button>`}<button class="link danger" data-act="delLog" data-id="${esc(l.id)}">Delete workout</button></div></div>`;
     }
     h += '</div>';
   }
@@ -1306,7 +1306,28 @@ function confirmFinish() {
     return;
   }
   const open = S.active.items.reduce((n, it) => n + it.sets.filter(s => !s.done && num(s.r) > 0).length, 0);
-  confirmBox('Finish workout?', 'Sets with reps typed in will be saved. Empty sets are skipped.' + (open ? ` ${open} set${open === 1 ? ' is' : 's are'} not ticked yet, but will still be saved.` : ''), 'Finish and save', doFinish, false, 'Keep going');
+  confirmBox('Finish workout?', 'Sets with reps typed in will be saved. Empty sets are skipped.' + (open ? ` ${open} set${open === 1 ? ' is' : 's are'} not ticked yet, but will still be saved.` : ''), 'Finish and save', () => doFinish(finishToSplit), false, 'Keep going');
+  // A workout that did not come from your split can be saved as a new split day.
+  if (!dayById(S.active.dayId)) {
+    finishToSplit = true;
+    $('#sheet h3').insertAdjacentHTML('afterend', `<div class="setting mt"><span>Save as a day in your split<br><span class="small muted">So you can start "${esc(S.active.dayName)}" again with one tap</span></span>
+      <button class="tgl on" data-act="tglFinishSplit" aria-label="Save as a day in your split"></button></div>`);
+  }
+}
+let finishToSplit = false;
+// Make a split day from a list of exercises ({name, sets, bw, reps, rest, ss}).
+function dayFromExercises(name, list) {
+  const used = new Set(S.days.map(d => d.color));
+  const day = { id: uid(), name: name || 'New day', color: COLORS.find(c => !used.has(c)) || COLORS[S.days.length % COLORS.length], exercises: [] };
+  for (const x of list) {
+    if (!x.name.trim() || day.exercises.some(e => keyOf(e.name) === keyOf(x.name))) continue;
+    const e = { id: uid(), name: x.name.trim(), sets: clamp(x.sets.length || 3, 1, 10) };
+    for (const k of ['bw', 'reps', 'rest', 'ss']) if (x[k] != null && x[k] !== false) e[k] = x[k];
+    day.exercises.push(e);
+  }
+  cleanGroups(day.exercises);
+  S.days.push(day);
+  return day;
 }
 function findRecords(entries) {
   const out = [];
@@ -1324,9 +1345,15 @@ function findRecords(entries) {
   }
   return out;
 }
-function doFinish() {
+function doFinish(toSplit) {
   const a = S.active, entries = collectEntries();
   const records = findRecords(entries);
+  if (toSplit && !dayById(a.dayId)) {
+    const done = new Set(entries.map(e => keyOf(e.name)));
+    const day = dayFromExercises(a.dayName, a.items.filter(it => done.has(keyOf(it.name))));
+    a.dayId = day.id; a.color = day.color;
+  }
+  finishToSplit = false;
   const log = { id: uid(), date: Date.now(), started: a.started, dayId: a.dayId, dayName: a.dayName, color: a.color, entries };
   if (a.note && a.note.trim()) log.note = a.note.trim();
   S.logs.push(log); S.active = null; stopRest(); save(); go('workout');
@@ -1601,6 +1628,13 @@ const A = {
     const u = undoSnap(); S.logs = S.logs.filter(l => l.id !== d.id); save(); render(); toast('Workout deleted', u);
   }, true),
   metric: d => { prog.metric = d.m; render(); },
+  tglFinishSplit: (d, b) => { finishToSplit = !finishToSplit; b.classList.toggle('on', finishToSplit); },
+  logToSplit: d => {
+    const l = S.logs.find(x => x.id === d.id); if (!l) return;
+    const day = dayFromExercises(l.dayName || 'Workout', l.entries);
+    l.dayId = day.id; l.color = day.color;
+    save(); render(); toast(`Added ${day.name} to your split`);
+  },
   set: d => {
     if (d.k === 'unit' && S.unit !== d.v) {
       if (d.v === 'lb' && S.bar === 20) S.bar = 45;

@@ -1,5 +1,5 @@
 // Bump this name every time any file changes, so phones download the update.
-const CACHE = 'liftlog-v8';
+const CACHE = 'liftlog-v9';
 const FILES = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
