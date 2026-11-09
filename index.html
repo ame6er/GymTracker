@@ -1617,8 +1617,11 @@ const A = {
   dayIdea: d => addDayNamed(d.n),
   delDay: d => {
     const day = dayById(d.id); if (!day) return;
-    const u = undoSnap(); S.days = S.days.filter(x => x.id !== d.id); save(); render();
-    toast(`Deleted ${day.name || 'day'}`, u);
+    const n = day.exercises.filter(e => e.name.trim()).length;
+    confirmBox(`Delete ${day.name || 'this day'}?`, n ? `It has ${n} exercise${n === 1 ? '' : 's'}. Your workout history is kept.` : 'Your workout history is kept.', 'Delete day', () => {
+      const u = undoSnap(); S.days = S.days.filter(x => x.id !== d.id); save(); render();
+      toast(`Deleted ${day.name || 'day'}`, u);
+    }, true);
   },
   moveDay: d => { moveIn(S.days, S.days.findIndex(x => x.id === d.id), +d.v); save(); render(); },
   color: d => {
@@ -1673,7 +1676,8 @@ document.addEventListener('change', e => {
   if (k === 'rest') { S.rest = +t.value; save(); }
   else if (k === 'progEx') { prog.name = t.value; prog.metric = ''; render(); }
   else if (t.dataset.f === 'bar' && view === 'settings') render();
-  else if ((t.dataset.f === 'dayName' || t.dataset.f === 'exReps') && view === 'plan') { save(); render(); }
+  else if (t.dataset.f === 'dayName') save();
+  else if (t.dataset.f === 'exReps' && view === 'plan') { save(); const e = planEx({ id: t.dataset.d, e: t.dataset.e }), pill = e && document.querySelector(`[data-act=exOpts][data-e="${e.id}"]`); if (pill) pill.textContent = targetTxt(e); }
 });
 
 // Enter key shortcuts.
@@ -1693,6 +1697,19 @@ document.addEventListener('keydown', e => {
 let resizeT = 0;
 window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (view === 'progress') drawChart(); }, 150); });
 
+/* ---------- Keep open copies of the app in sync ----------
+   If the app is open in two tabs, each one has its own copy of the data in memory.
+   When another tab saves, load the newest data here so this tab never shows or saves old data. */
+function syncFromStorage() {
+  if (saveTimer) return;
+  let raw = null;
+  try { raw = localStorage.getItem(KEY); } catch (e) { return; }
+  if (raw && raw !== JSON.stringify(S)) { S = load(); applyTheme(); if (!lib && !ssSel) render(); }
+}
+window.addEventListener('storage', e => { if (e.key === KEY) syncFromStorage(); });
+window.addEventListener('pageshow', syncFromStorage);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncFromStorage(); });
+
 /* ---------- Start ---------- */
 applyTheme();
 go('workout');
@@ -1704,7 +1721,7 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!hadController || reloading) return;
     if (S.active) { toast('LiftLog was updated.', () => { save(); location.reload(); }, 'Reload', 20000); return; }
-    reloading = true; save(); location.reload();
+    reloading = true; if (saveTimer) save(); location.reload();
   });
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then(reg => {
