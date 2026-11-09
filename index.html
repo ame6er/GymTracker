@@ -379,8 +379,10 @@ const PART_COLORS = { Chest: '#ef4444', Back: '#0ea5e9', Shoulders: '#f59e0b', A
 function defaults() {
   return { v: 1, name: '', unit: 'kg', theme: 'auto', accent: 'purple', rest: 90, bar: 20, days: [], logs: [], active: null, alert: true, lastBackup: 0, backupSnooze: 0 };
 }
-function cleanTarget(x) {
-  if (x.sets != null) { const n = Math.round(num(x.sets)); if (n >= 1 && n <= 20) x.sets = n; else delete x.sets; }
+// Cleans the optional exercise settings. In the split, "sets" is a number (how many sets to start with).
+// In a running workout, "sets" is the list of sets, so it must be left alone (isPlan = false).
+function cleanTarget(x, isPlan) {
+  if (isPlan && x.sets != null) { const n = Math.round(num(x.sets)); if (n >= 1 && n <= 20) x.sets = n; else delete x.sets; }
   if (x.reps != null) { const r = String(x.reps).trim().slice(0, 12); if (r) x.reps = r; else delete x.reps; }
   if (x.rest != null) { const r = Math.round(num(x.rest)); if (r >= 0 && r <= 900) x.rest = r; else delete x.rest; }
   if (x.ss != null) { const g = String(x.ss).slice(0, 24); if (g) x.ss = g; else delete x.ss; }
@@ -404,7 +406,7 @@ function normalize(raw) {
   s.days = (Array.isArray(s.days) ? s.days : []).filter(d => d && typeof d === 'object').map(d => Object.assign({}, d, {
     id: d.id || uid(), name: String(d.name == null ? 'Day' : d.name), color: d.color || COLORS[0],
     exercises: (Array.isArray(d.exercises) ? d.exercises : []).filter(e => e && typeof e === 'object')
-      .map(e => cleanTarget(Object.assign({}, e, { id: e.id || uid(), name: String(e.name == null ? '' : e.name) })))
+      .map(e => cleanTarget(Object.assign({}, e, { id: e.id || uid(), name: String(e.name == null ? '' : e.name) }), true))
   }));
   s.logs = (Array.isArray(s.logs) ? s.logs : []).filter(l => l && typeof l === 'object' && Array.isArray(l.entries)).map(l => Object.assign({}, l, {
     id: l.id || uid(), date: num(l.date) || num(l.started) || Date.now(), started: num(l.started) || num(l.date),
@@ -419,7 +421,7 @@ function normalize(raw) {
     a.items = a.items.filter(it => it && typeof it === 'object').map(it => cleanTarget(Object.assign({}, it, {
       id: it.id || uid(), name: String(it.name == null ? '' : it.name),
       sets: (Array.isArray(it.sets) ? it.sets : []).filter(x => x && typeof x === 'object')
-    })));
+    }), false));
   } else s.active = null;
   return s;
 }
@@ -1120,7 +1122,13 @@ function libAdd() {
 const TITLES = { workout: 'LiftLog', history: 'History', progress: 'Progress', profile: 'Profile', settings: 'Settings', plan: 'Your split' };
 function render() {
   const fns = { workout: vWorkout, history: vHistory, progress: vProgress, profile: vProfile, settings: vSettings, plan: vPlan };
-  $('#view').innerHTML = (fns[view] || vWorkout)();
+  try { $('#view').innerHTML = (fns[view] || vWorkout)(); }
+  catch (err) {
+    $('#view').innerHTML = `<div class="empty"><p><b>Something went wrong on this screen</b></p>
+      <p class="muted small">Your saved workouts are safe. Try another tab, or reload the app. If it keeps happening, send a screenshot of this message.</p>
+      <p class="small muted">${esc(err && err.message)}</p>
+      <button class="btn primary block mt" onclick="location.reload()">Reload</button></div>`;
+  }
   $('#title').textContent = view === 'workout' && S.active ? 'Workout' : TITLES[view];
   $('#topFinish').classList.toggle('hidden', !(S.active && view === 'workout'));
   const tab = view === 'plan' ? 'workout' : view;
