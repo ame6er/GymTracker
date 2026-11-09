@@ -41,7 +41,7 @@ state = { v:1, unit:"kg"|"lb", theme:"auto"|"light"|"dark", rest:seconds, bar:nu
 Build-your-own split (no ready-made splits), split days shown as cards on home with a preview sheet, start an empty workout, searchable exercise list with body part filters and custom exercises, per-exercise options (sets, rep target, own rest time, bodyweight, order), "add weight" tip when the rep target was hit on every set, app color choice, supersets (in the split and during a workout), profile page (name, week streak, totals, workouts per week chart, best lifts), workout table with a Previous column and rest times between sets, Finish button in the header, set logging with "last time" shown as placeholder hints, rest timer, plate calculator, new-record detection on finish, history, progress chart (heaviest set, estimated 1RM, volume), kg/lb, light/dark mode, backup export/import as a JSON file.
 
 ## Design
-Simple and clean, with some life: gradient hero card on home, week dots, colored day badges, small animations (respecting reduced motion), confetti on new records. Keep it simple; the owner prefers simplicity.
+Minimal. The owner loves minimalism: small buttons, lots of space, buttons side by side instead of stacked, text links for secondary actions, flat accent color (no big gradients). Each exercise shows a simple line drawing (`PICS` and `PIC_RULES` in index.html pick one by exercise name). Small touches of life: week dots, set tick animation, confetti on new records. Do not copy another app's art or look.
 
 ## Rules for every change
 - Keep the app plain HTML/CSS/JS with no build step, so GitHub Pages can serve the files as they are.
